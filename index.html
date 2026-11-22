@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2a0f18">
-<title>Sessão a Dois</title>
+<title>Cine Jusce</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
@@ -164,7 +164,7 @@ svg{display:block}
 <main id="home">
   <div class="home-card">
     <header class="brand">
-      <h1>Sessão a dois</h1>
+      <h1>Cine Jusce</h1>
       <p>Filme junto, cada um no seu sofá, conversando por voz.</p>
     </header>
     <div class="ticket" id="homeTicket">
@@ -676,7 +676,7 @@ $('tabPeople').onclick = () => showTab('people');
 $('btnCopy').onclick = async () => {
   const link = location.origin + location.pathname + '#' + $('roomCode').textContent;
   if (navigator.share && matchMedia('(pointer:coarse)').matches){
-    try { await navigator.share({ title: 'Sessão a dois', text: 'Vem assistir comigo:', url: link }); } catch(_){}
+    try { await navigator.share({ title: 'Cine Jusce', text: 'Vem assistir comigo no Cine Jusce:', url: link }); } catch(_){}
     return;
   }
   try { await navigator.clipboard.writeText(link); toast('Link copiado'); }
