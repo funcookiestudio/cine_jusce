@@ -107,6 +107,15 @@ svg{display:block}
 .ctl.danger i{background:var(--red)}
 .ctl[aria-pressed=false] i{background:var(--red)}
 .ctl:disabled{opacity:.45;cursor:default}
+.ctl.on i{background:var(--lamp);color:var(--ink)}
+.ctl .ico-play{display:none}
+.ctl.on .ico-play{display:block}
+.ctl.on .ico-pause{display:none}
+.pausebox{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  background:rgba(20,6,10,.88);text-align:center;padding:20px;pointer-events:none}
+.pausebox svg{width:48px;height:48px;color:var(--lamp)}
+.pausebox b{font:800 clamp(18px,4vw,24px) "Bricolage Grotesque",sans-serif}
+.pausebox span{font-size:15px;color:var(--muted)}
 .slash{display:none}
 [aria-pressed=false] .slash{display:inline}
 
@@ -161,12 +170,11 @@ svg{display:block}
     grid-template-areas:"top" "screen" "controls" "panel"}
   .screen{aspect-ratio:16/9;max-height:45dvh;width:100%}
   .panel{border-left:0}
-  .controls{padding:8px}
-  .ctl{min-width:64px}
+  .controls{padding:8px 4px}
+  .ctl{flex:1 1 0;min-width:0;max-width:72px}
 }
 @media (max-width:380px){
   .chip small{display:none}
-  .ctl{min-width:56px}
 }
 @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
 </style>
@@ -219,6 +227,11 @@ svg{display:block}
       <p id="emptyText"></p>
       <div><button class="btn lamp hidden" id="btnRetry">Tentar de novo</button></div>
     </div>
+    <div class="pausebox hidden" id="pauseBox">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+      <b id="pauseWho"></b>
+      <span id="pauseHint"></span>
+    </div>
     <button class="btn lamp unmute hidden" id="btnUnmute">Ativar som</button>
   </section>
 
@@ -234,6 +247,15 @@ svg{display:block}
     <button class="ctl hidden" id="btnStop" aria-label="Parar de compartilhar">
       <i><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/></svg></i>
       <span>Parar</span>
+    </button>
+    <button class="ctl hidden" id="btnQuality" aria-label="Qualidade do vídeo">
+      <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="var(--velvet)"/><circle cx="15" cy="12" r="2" fill="var(--velvet)"/><circle cx="8" cy="18" r="2" fill="var(--velvet)"/></svg></i>
+      <span id="qualLabel">1080p</span>
+    </button>
+    <button class="ctl" id="btnPause" aria-label="Pausar o filme para todos">
+      <i><svg class="ico-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+         <svg class="ico-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></i>
+      <span id="pauseLabel">Pausar</span>
     </button>
     <button class="ctl" id="btnFull" aria-label="Tela cheia">
       <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></i>
@@ -293,7 +315,10 @@ const SPEAKER_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
    como ele deve ENVIAR para nós, então os dois lados ajustam a sua SDP. */
 const VOICE_OPUS  = { minptime:10, useinbandfec:1, usedtx:0, stereo:0, maxaveragebitrate:128000 };
 const SCREEN_OPUS = { minptime:10, useinbandfec:1, usedtx:0, stereo:1, 'sprop-stereo':1, maxaveragebitrate:510000, maxplaybackrate:48000 };
-const VIDEO_MAX_BITRATE = 8_000_000; // 8 Mbps por espectador, 1080p
+// Qualidade do vídeo do filme (escolhida pelo anfitrião)
+const QUALITY = { 720: { w: 1280, h: 720, bitrate: 4_000_000 }, 1080: { w: 1920, h: 1080, bitrate: 8_000_000 } };
+let quality = 1080;
+try { if (QUALITY[localStorage.getItem('sessao-qualidade')]) quality = +localStorage.getItem('sessao-qualidade'); } catch(_){}
 
 /* Servidores para atravessar roteadores/NAT.
    STUN: ajudam a conexão direta (melhor qualidade).
@@ -304,7 +329,11 @@ const VIDEO_MAX_BITRATE = 8_000_000; // 8 Mbps por espectador, 1080p
    - TURN_CREDENTIALS_URL: endereço que devolve a lista de iceServers em JSON
    - EXTRA_TURN: credenciais fixas, ex.: { urls: 'turn:servidor:3478', username: '...', credential: '...' } */
 const TURN_CREDENTIALS_URL = 'https://cine-jusce.funcookiestudio.workers.dev/turn-credentials';
-const EXTRA_TURN = [];
+// Segundo TURN (reserva), caso o da Cloudflare falhe: Open Relay, gratuito e público.
+const EXTRA_TURN = [
+  { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turns:openrelay.metered.ca:443?transport=tcp'],
+    username: 'openrelayproject', credential: 'openrelayproject' }
+];
 const ICE_CONFIG = { iceServers: [
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] },
   { urls: 'stun:stun.cloudflare.com:3478' },
@@ -353,7 +382,7 @@ function tuneSenders(call, kind){
       const e = p.encodings[0];
       e.priority = 'high'; e.networkPriority = 'high';
       if (s.track.kind === 'video'){
-        e.maxBitrate = VIDEO_MAX_BITRATE; e.maxFramerate = 30;
+        e.maxBitrate = QUALITY[quality].bitrate; e.maxFramerate = 30;
         p.degradationPreference = 'maintain-framerate';
       } else {
         e.maxBitrate = kind === 'screen' ? 510000 : 128000;
@@ -625,6 +654,7 @@ async function startHost(){
     showRoom(code);
     if (canShareScreen){
       $('btnShare').classList.remove('hidden');
+      $('btnQuality').classList.remove('hidden'); updateQualityBtn();
       showEmpty('Sala pronta', 'Envie o link da sala e toque em “Compartilhar”. Escolha a aba do filme e marque “Compartilhar áudio da guia”.');
     } else {
       showEmpty('Sala pronta', 'Este aparelho não consegue compartilhar a tela. Para passar o filme, abra a sala no computador. Aqui dá para conversar por voz.');
@@ -640,6 +670,7 @@ async function startHost(){
         conns.filter(c => c !== conn && c.open).map(c => ({ id: c.peer, name: (c.metadata && c.metadata.name) || 'Alguém' }))
       );
       conn.send({ t: 'roster', peers: roster });
+      if (paused) conn.send({ t: 'pause', on: true, name: pausedBy });
       relay({ t: 'join', id: conn.peer, name }, conn);
       person(conn.peer, name);
       setStatus(countTxt(), true);
@@ -650,6 +681,7 @@ async function startHost(){
     conn.on('data', d => {
       if (d.t === 'chat') { log(d.msg, '', d.name); relay(d, conn); }
       else if (d.t === 'resend' && stream) callScreen(conn.peer); // convidado pediu o vídeo de novo
+      else if (d.t === 'pause') { setPaused(!!d.on, d.name); relay(d, conn); log(d.name + (d.on ? ' pausou o filme' : ' continuou o filme'), 'sys'); }
     });
     conn.on('close', () => {
       conns = conns.filter(c => c !== conn);
@@ -674,7 +706,7 @@ function callScreen(id){
 async function shareScreen(){
   try{
     stream = await navigator.mediaDevices.getDisplayMedia({
-      video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30, max: 60 } },
+      video: { width: { ideal: QUALITY[quality].w }, height: { ideal: QUALITY[quality].h }, frameRate: { ideal: 30, max: 60 } },
       audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:2, sampleRate:48000 },
       systemAudio: 'include'
     });
@@ -689,8 +721,57 @@ async function shareScreen(){
   if (!stream.getAudioTracks().length) log('Sem som do filme: ao compartilhar, marque “Compartilhar áudio da guia”.', 'sys');
   vt.addEventListener('ended', stopShare);
 }
+/* Qualidade: vale na hora, mesmo com o filme já passando */
+function updateQualityBtn(){
+  $('qualLabel').textContent = quality + 'p';
+  $('btnQuality').setAttribute('aria-label', 'Qualidade do vídeo: ' + quality + 'p. Toque para trocar');
+}
+async function setQuality(q){
+  quality = q; updateQualityBtn();
+  try { localStorage.setItem('sessao-qualidade', String(q)); } catch(_){}
+  if (!stream) return;
+  const vt = stream.getVideoTracks()[0];
+  try { await vt.applyConstraints({ width: { ideal: QUALITY[q].w }, height: { ideal: QUALITY[q].h }, frameRate: { ideal: 30, max: 60 } }); } catch(_){}
+  for (const c of screenCalls){
+    const pc = c.peerConnection; if (!pc) continue;
+    for (const s of pc.getSenders()){
+      if (!s.track || s.track.kind !== 'video') continue;
+      const p = s.getParameters(); if (!p.encodings || !p.encodings.length) continue;
+      p.encodings[0].maxBitrate = QUALITY[q].bitrate;
+      try { await s.setParameters(p); } catch(_){}
+    }
+  }
+  toast('Qualidade: ' + q + 'p');
+}
+
+/* Pausa em sincronia: o navegador não deixa um site pausar o filme de outra aba,
+   então todo mundo vê o aviso, os convidados congelam a imagem e o anfitrião
+   é avisado para pausar o filme na aba compartilhada. */
+let paused = false, pausedBy = '';
+function setPaused(on, by){
+  paused = on; pausedBy = by || '';
+  $('pauseBox').classList.toggle('hidden', !on);
+  $('pauseWho').textContent = on ? (by || 'Alguém') + ' pausou o filme' : '';
+  $('pauseHint').textContent = on && role === 'host' && stream ? 'Pause o filme na aba compartilhada.' : '';
+  $('btnPause').classList.toggle('on', on);
+  $('pauseLabel').textContent = on ? 'Continuar' : 'Pausar';
+  $('btnPause').setAttribute('aria-label', on ? 'Continuar o filme para todos' : 'Pausar o filme para todos');
+  const v = $('video');
+  if (role === 'guest'){
+    if (on) v.pause(); else v.play().catch(() => $('btnUnmute').classList.remove('hidden'));
+  } else if (!on && stream) toast('Pode continuar o filme');
+}
+function togglePause(){
+  const on = !paused;
+  setPaused(on, myName);
+  const d = { t: 'pause', on, name: myName };
+  if (role === 'host') relay(d);
+  else if (myConn && myConn.open) myConn.send(d);
+}
+
 function stopShare(){
   if (!stream) return;
+  if (paused){ setPaused(false); relay({ t: 'pause', on: false, name: myName }); }
   stream.getTracks().forEach(t => t.stop()); stream = null;
   screenCalls.forEach(c => { try { c.close(); } catch(_){} }); screenCalls = [];
   $('video').srcObject = null;
@@ -721,6 +802,7 @@ async function startGuest(code){
     myConn.on('data', d => {
       if (d.t === 'chat') log(d.msg, '', d.name);
       else if (d.t === 'roster') d.peers.forEach(p => callVoice(p.id, p.name));
+      else if (d.t === 'pause') { setPaused(!!d.on, d.name); log(d.name + (d.on ? ' pausou o filme' : ' continuou o filme'), 'sys'); }
       else if (d.t === 'join') { person(d.id, d.name); log(d.name + ' entrou', 'sys'); }
       else if (d.t === 'leave') {
         const p = people.get(d.id); if (p) log(p.name + ' saiu', 'sys');
@@ -761,6 +843,8 @@ $('btnRetry').onclick = () => {
 };
 $('btnShare').onclick = shareScreen;
 $('btnStop').onclick = stopShare;
+$('btnQuality').onclick = () => setQuality(quality === 1080 ? 720 : 1080);
+$('btnPause').onclick = togglePause;
 $('btnLeave').onclick = () => { history.replaceState(null,'',location.pathname); location.reload(); };
 $('btnFull').onclick = () => {
   const s = $('screen'), v = $('video');
