@@ -41,27 +41,33 @@ svg{display:block}
 .home-card{width:min(420px,100%);display:grid;gap:28px}
 .brand h1{font-size:clamp(40px,11vw,56px);font-weight:800}
 .brand p{margin:10px 0 0;color:var(--muted)}
-.ticket{background:var(--ticket);color:var(--ink);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:16px;
-  -webkit-mask:radial-gradient(circle 11px at 0 62%,#0000 98%,#000) left/51% 100% no-repeat,
-               radial-gradient(circle 11px at 100% 62%,#0000 98%,#000) right/51% 100% no-repeat;
-          mask:radial-gradient(circle 11px at 0 62%,#0000 98%,#000) left/51% 100% no-repeat,
-               radial-gradient(circle 11px at 100% 62%,#0000 98%,#000) right/51% 100% no-repeat}
 .field{display:grid;gap:6px}
-.field span{font-size:13px;font-weight:500;opacity:.7}
-.ticket input{width:100%;min-width:0;min-height:48px;border:2px solid rgba(42,15,24,.25);border-radius:10px;background:#fff9ea;color:var(--ink);
+.field span{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.field input{width:100%;min-height:48px;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.25);color:var(--ticket);
   padding:0 14px;font-size:17px}
-.ticket input:focus{border-color:var(--ink);outline:none}
-.ticket input.code{font:500 18px "Bricolage Grotesque",sans-serif;letter-spacing:.16em;text-transform:uppercase}
+.field input:focus{outline:none;border-color:var(--lamp)}
+.tickets{display:flex;flex-direction:column;gap:18px}
+.ticket{background:var(--ticket);color:var(--ink);border-radius:12px;padding:24px 28px;display:flex;flex-direction:column;gap:12px;
+  -webkit-mask:radial-gradient(circle 11px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,
+               radial-gradient(circle 11px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;
+          mask:radial-gradient(circle 11px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,
+               radial-gradient(circle 11px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.ticket h2{font-size:clamp(24px,6.5vw,28px);font-weight:800}
+.ticket p{margin:0 0 4px;font-size:15px;opacity:.75}
+.ticket .btn{width:100%}
 .ticket .row{display:flex;gap:10px}
-.divider{display:flex;align-items:center;gap:12px;font-size:13px;opacity:.6}
-.divider::before,.divider::after{content:"";flex:1;border-top:1px dashed rgba(42,15,24,.35)}
-#createBlock .btn{width:100%}
+.ticket .row .btn{width:auto}
+.ticket input.code{flex:1;width:100%;min-width:0;min-height:48px;border:2px solid var(--ink);border-radius:10px;background:#fff9ea;color:var(--ink);
+  padding:0 14px;font:500 18px "Bricolage Grotesque",sans-serif;letter-spacing:.16em;text-transform:uppercase}
+.ticket input.code:focus{outline:none;box-shadow:0 0 0 3px rgba(232,163,61,.6)}
 .hint{margin:0;font-size:14px;color:var(--muted);text-align:center}
-/* Quem chega por link vê “Entrar” primeiro */
-.invited #joinBlock{order:1}
-.invited .divider{order:2}
-.invited #createBlock{order:3}
-.invited #createBlock .btn{background:transparent;color:var(--ink);text-decoration:underline;text-underline-offset:3px;min-height:40px}
+/* Quem chega por link vê “Vou assistir” primeiro */
+.invited #joinTicket{order:1}
+.invited #createTicket{order:2}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .ticket{transition:transform .2s}
+  .ticket:hover{transform:rotate(-.6deg) translateY(-2px)}
+}
 
 /* ---------- Sala ---------- */
 #room{height:100vh;height:100dvh;display:grid;
@@ -167,16 +173,23 @@ svg{display:block}
       <h1>Cine Jusce</h1>
       <p>Filmes estranhos de produtoras duvidosas</p>
     </header>
-    <div class="ticket" id="homeTicket">
-      <label class="field"><span>Seu nome</span>
-        <input id="nameIn" maxlength="24" placeholder="Como os outros vão te ver" autocomplete="nickname" enterkeyhint="next">
-      </label>
-      <div id="createBlock"><button class="btn lamp" id="btnHost">Criar sala</button></div>
-      <div class="divider" id="divider">ou entre com um código</div>
-      <div class="row" id="joinBlock">
-        <input class="code" id="codeIn" maxlength="6" placeholder="ABC123" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" aria-label="Código da sala">
-        <button class="btn" id="btnJoin">Entrar</button>
-      </div>
+    <label class="field"><span>Seu nome</span>
+      <input id="nameIn" maxlength="24" placeholder="Como os outros vão te ver" autocomplete="nickname" enterkeyhint="next">
+    </label>
+    <div class="tickets" id="homeTicket">
+      <section class="ticket" id="createTicket">
+        <h2>Vou passar o filme</h2>
+        <p>Cria uma sala e gera um código para enviar ao seu amigo.</p>
+        <button class="btn" id="btnHost">Criar sala</button>
+      </section>
+      <section class="ticket" id="joinTicket">
+        <h2>Vou assistir</h2>
+        <p>Digite o código que seu amigo mandou.</p>
+        <div class="row">
+          <input class="code" id="codeIn" maxlength="6" placeholder="ABC123" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" aria-label="Código da sala">
+          <button class="btn lamp" id="btnJoin">Entrar</button>
+        </div>
+      </section>
     </div>
     <p class="hint">Sem cadastro. Com fones, a voz fica mais limpa.</p>
   </div>
@@ -794,9 +807,6 @@ try { $('nameIn').value = localStorage.getItem('sessao-nome') || ''; } catch(_){
 if (location.hash.length > 1){
   $('codeIn').value = location.hash.slice(1, 7).toUpperCase();
   $('homeTicket').classList.add('invited');
-  $('btnJoin').classList.add('lamp');
-  $('btnHost').textContent = 'Criar outra sala';
-  $('divider').textContent = 'ou';
 }
 </script>
 </body>
