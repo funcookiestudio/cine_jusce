@@ -1,0 +1,11 @@
+{
+  // Configuração do Worker "cine-jusce" na Cloudflare.
+  // Segredos (TURN_KEY_ID, TURN_KEY_API_TOKEN) são definidos no painel, não aqui.
+  "name": "cine-jusce",
+  "main": "worker.js",
+  "compatibility_date": "2025-11-01",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS"
+  }
+}

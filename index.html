@@ -278,12 +278,12 @@ const VIDEO_MAX_BITRATE = 8_000_000; // 8 Mbps por espectador, 1080p
 /* Servidores para atravessar roteadores/NAT.
    STUN: ajudam a conexão direta (melhor qualidade).
    TURN: retransmitem o vídeo quando a conexão direta é impossível.
-   O TURN gratuito da PeerJS não existe mais, então sem um TURN próprio
-   algumas redes não recebem o vídeo. Duas formas de configurar:
+   O TURN gratuito da PeerJS não existe mais. Usamos o TURN da Cloudflare:
+   o worker.js (no Cloudflare Workers) gera credenciais temporárias em
+   /turn-credentials, sem expor as chaves aqui.
    - TURN_CREDENTIALS_URL: endereço que devolve a lista de iceServers em JSON
-     (ex.: a API de credenciais do Metered, ...metered.live/api/v1/turn/credentials?apiKey=...)
    - EXTRA_TURN: credenciais fixas, ex.: { urls: 'turn:servidor:3478', username: '...', credential: '...' } */
-const TURN_CREDENTIALS_URL = '';
+const TURN_CREDENTIALS_URL = 'https://cine-jusce.funcookiestudio.workers.dev/turn-credentials';
 const EXTRA_TURN = [];
 const ICE_CONFIG = { iceServers: [
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] },
@@ -295,7 +295,9 @@ function getIceConfig(){
   if (!icePromise) icePromise = (async () => {
     if (!TURN_CREDENTIALS_URL) return ICE_CONFIG;
     try{
-      const r = await fetch(TURN_CREDENTIALS_URL);
+      const ctrl = new AbortController(); setTimeout(() => ctrl.abort(), 4000);
+      const r = await fetch(TURN_CREDENTIALS_URL, { signal: ctrl.signal, cache: 'no-store' });
+      if (!r.ok) throw new Error('TURN ' + r.status);
       const servers = await r.json();
       if (Array.isArray(servers) && servers.length) return { iceServers: [...ICE_CONFIG.iceServers, ...servers] };
     }catch(_){}
