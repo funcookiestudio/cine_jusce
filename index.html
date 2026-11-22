@@ -277,16 +277,32 @@ const VIDEO_MAX_BITRATE = 8_000_000; // 8 Mbps por espectador, 1080p
 
 /* Servidores para atravessar roteadores/NAT.
    STUN: ajudam a conexão direta (melhor qualidade).
-   TURN: retransmitem quando a conexão direta é impossível. O da PeerJS é gratuito
-   e fraco para vídeo; para redes difíceis, coloque um TURN próprio em EXTRA_TURN,
-   ex.: { urls: 'turn:servidor:3478', username: '...', credential: '...' } */
+   TURN: retransmitem o vídeo quando a conexão direta é impossível.
+   O TURN gratuito da PeerJS não existe mais, então sem um TURN próprio
+   algumas redes não recebem o vídeo. Duas formas de configurar:
+   - TURN_CREDENTIALS_URL: endereço que devolve a lista de iceServers em JSON
+     (ex.: a API de credenciais do Metered, ...metered.live/api/v1/turn/credentials?apiKey=...)
+   - EXTRA_TURN: credenciais fixas, ex.: { urls: 'turn:servidor:3478', username: '...', credential: '...' } */
+const TURN_CREDENTIALS_URL = '';
 const EXTRA_TURN = [];
 const ICE_CONFIG = { iceServers: [
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] },
   { urls: 'stun:stun.cloudflare.com:3478' },
-  ...EXTRA_TURN,
-  { urls: ['turn:eu-0.turn.peerjs.com:3478', 'turn:us-0.turn.peerjs.com:3478'], username: 'peerjs', credential: 'peerjsp' }
+  ...EXTRA_TURN
 ]};
+let icePromise = null;
+function getIceConfig(){
+  if (!icePromise) icePromise = (async () => {
+    if (!TURN_CREDENTIALS_URL) return ICE_CONFIG;
+    try{
+      const r = await fetch(TURN_CREDENTIALS_URL);
+      const servers = await r.json();
+      if (Array.isArray(servers) && servers.length) return { iceServers: [...ICE_CONFIG.iceServers, ...servers] };
+    }catch(_){}
+    return ICE_CONFIG;
+  })();
+  return icePromise;
+}
 
 function tuneOpus(sdp, params){
   const m = sdp.match(/a=rtpmap:(\d+) opus\/48000\/2/i);
@@ -573,10 +589,10 @@ function log(txt, cls='', from=''){
 const countTxt = () => conns.length ? (conns.length + 1) + ' na sala' : 'Aguardando amigos';
 
 /* ---------------- ANFITRIÃO ---------------- */
-function startHost(){
+async function startHost(){
   role = 'host';
   const code = genCode();
-  peer = new Peer(PREFIX + code, { config: ICE_CONFIG });
+  peer = new Peer(PREFIX + code, { config: await getIceConfig() });
   peer.on('error', e => {
     if (e.type === 'unavailable-id') return startHost();
     if (e.type === 'peer-unavailable') return;
@@ -661,11 +677,11 @@ function stopShare(){
 }
 
 /* ---------------- CONVIDADO ---------------- */
-function startGuest(code){
+async function startGuest(code){
   role = 'guest';
   code = code.trim().toUpperCase();
   if (code.length < 6) return;
-  peer = new Peer(undefined, { config: ICE_CONFIG });
+  peer = new Peer(undefined, { config: await getIceConfig() });
   peer.on('error', e => {
     if (e.type === 'peer-unavailable' && myConn && myConn.open) return; // outro convidado sumiu
     setStatus(e.type === 'peer-unavailable' ? 'Sala não encontrada' : 'Erro: ' + e.type);
