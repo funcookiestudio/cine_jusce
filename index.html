@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sessão a Dois</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+:root{
+  --velvet:#2a0f18; --wine:#4a1424; --wine-2:#5e1c31;
+  --ticket:#f2e3c6; --ink:#2a0f18; --lamp:#e8a33d; --mint:#8fc4b0;
+  --line:rgba(242,227,198,.18);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--velvet);color:var(--ticket);font:400 16px/1.5 "DM Sans",system-ui,sans-serif;
+  background-image:radial-gradient(ellipse at 50% -10%,var(--wine-2),transparent 60%)}
+h1,h2{font-family:"Bricolage Grotesque",sans-serif;margin:0;line-height:1.05}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--lamp);outline-offset:2px}
+.hidden{display:none!important}
+
+/* ---------- Entrada ---------- */
+#home{min-height:100%;display:grid;place-items:center;padding:24px}
+.home-inner{width:min(920px,100%);display:grid;gap:40px;grid-template-columns:1fr 1fr;align-items:center}
+.home-copy h1{font-size:clamp(40px,7vw,72px);font-weight:800}
+.home-copy p{max-width:34ch;color:rgba(242,227,198,.75);margin:18px 0 0}
+.tickets{display:grid;gap:18px}
+.ticket{position:relative;background:var(--ticket);color:var(--ink);border-radius:10px;padding:22px 24px 22px 28px;
+  display:grid;gap:12px;
+  -webkit-mask:radial-gradient(circle 11px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,
+               radial-gradient(circle 11px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;
+          mask:radial-gradient(circle 11px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,
+               radial-gradient(circle 11px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.ticket h2{font-size:26px}
+.ticket p{margin:0;font-size:14px;opacity:.75}
+.btn{border:0;border-radius:8px;padding:12px 18px;font-weight:500;background:var(--ink);color:var(--ticket)}
+.btn:hover{background:var(--wine-2)}
+.btn.lamp{background:var(--lamp);color:var(--ink)}
+.btn.lamp:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ticket)}
+.btn.ghost:hover{background:rgba(242,227,198,.08)}
+.row{display:flex;gap:10px}
+input[type=text]{flex:1;min-width:0;border:2px solid var(--ink);border-radius:8px;background:#fff9ea;color:var(--ink);
+  padding:11px 14px;font:500 18px "Bricolage Grotesque",sans-serif;letter-spacing:.14em;text-transform:uppercase}
+
+/* ---------- Sala ---------- */
+#room{height:100%;display:grid;grid-template-columns:1fr 320px;grid-template-rows:auto 1fr}
+.bar{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.stub{display:flex;align-items:center;gap:10px;background:var(--ticket);color:var(--ink);border-radius:6px;padding:6px 8px 6px 14px}
+.stub b{font:800 22px "Bricolage Grotesque",sans-serif;letter-spacing:.18em}
+.stub button{padding:6px 10px;font-size:13px}
+.status{font-size:14px;color:rgba(242,227,198,.7);display:flex;align-items:center;gap:8px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--lamp)}
+.dot.on{background:var(--mint)}
+.spacer{flex:1}
+.screen{position:relative;display:grid;place-items:center;background:#000;min-height:0}
+.screen video{width:100%;height:100%;object-fit:contain;background:#000}
+.empty{position:absolute;inset:0;display:grid;place-content:center;gap:14px;text-align:center;padding:24px}
+.empty h2{font-size:30px}
+.empty p{margin:0 auto;max-width:42ch;color:rgba(242,227,198,.7)}
+.unmute{position:absolute;bottom:18px;left:50%;transform:translateX(-50%)}
+.chat{display:grid;grid-template-rows:1fr auto;border-left:1px solid var(--line);min-height:0;background:rgba(0,0,0,.18)}
+#log{overflow:auto;padding:14px;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.msg{max-width:90%;padding:8px 12px;border-radius:12px;background:rgba(242,227,198,.1);align-self:flex-start;overflow-wrap:anywhere}
+.msg.me{align-self:flex-end;background:var(--lamp);color:var(--ink)}
+.msg.sys{align-self:center;background:none;font-size:13px;color:rgba(242,227,198,.55)}
+.send{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
+.send input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;background:rgba(0,0,0,.25);color:var(--ticket);padding:10px 12px;font:inherit}
+
+@media (max-width:820px){
+  .home-inner{grid-template-columns:1fr}
+  #room{grid-template-columns:1fr;grid-template-rows:auto 1fr 260px}
+  .chat{border-left:0;border-top:1px solid var(--line)}
+}
+@media (prefers-reduced-motion:no-preference){
+  .ticket{transition:transform .2s}
+  .ticket:hover{transform:rotate(-.6deg) translateY(-2px)}
+}
+</style>
+</head>
+<body>
+
+<!-- ENTRADA -->
+<main id="home">
+  <div class="home-inner">
+    <div class="home-copy">
+      <h1>Sessão a dois, cada um no seu sofá.</h1>
+      <p>Um compartilha a aba do navegador com o filme. O outro entra com o código e assiste ao vivo. Sem cadastro.</p>
+    </div>
+    <div class="tickets">
+      <section class="ticket">
+        <h2>Vou passar o filme</h2>
+        <p>Cria uma sala e gera um código para enviar ao seu amigo.</p>
+        <button class="btn" id="btnHost">Criar sala</button>
+      </section>
+      <section class="ticket">
+        <h2>Vou assistir</h2>
+        <p>Digite o código que seu amigo mandou.</p>
+        <div class="row">
+          <input type="text" id="codeIn" maxlength="6" placeholder="ABC123" autocomplete="off" aria-label="Código da sala">
+          <button class="btn lamp" id="btnJoin">Entrar</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<!-- SALA -->
+<div id="room" class="hidden">
+  <header class="bar">
+    <div class="stub"><span>Sala</span><b id="roomCode">------</b><button class="btn" id="btnCopy">Copiar link</button></div>
+    <div class="status"><span class="dot" id="dot"></span><span id="statusTxt">Conectando…</span></div>
+    <span class="spacer"></span>
+    <button class="btn lamp hidden" id="btnShare">Compartilhar tela</button>
+    <button class="btn ghost hidden" id="btnStop">Parar</button>
+    <button class="btn ghost" id="btnFull">Tela cheia</button>
+    <button class="btn ghost" id="btnLeave">Sair</button>
+  </header>
+
+  <section class="screen" id="screen">
+    <video id="video" autoplay playsinline></video>
+    <div class="empty" id="empty">
+      <h2 id="emptyTitle"></h2>
+      <p id="emptyText"></p>
+    </div>
+    <button class="btn lamp unmute hidden" id="btnUnmute">Ativar som</button>
+  </section>
+
+  <aside class="chat">
+    <div id="log" aria-live="polite"></div>
+    <form class="send" id="chatForm">
+      <input id="chatIn" placeholder="Escreva uma mensagem" autocomplete="off" aria-label="Mensagem">
+      <button class="btn lamp" type="submit">Enviar</button>
+    </form>
+  </aside>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const PREFIX = 'sessao-a-dois-';
+let peer, role, stream = null, conns = [], myConn = null;
+
+const genCode = () => {
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:6}, () => c[Math.floor(Math.random()*c.length)]).join('');
+};
+
+function showRoom(code){
+  $('home').classList.add('hidden');
+  $('room').classList.remove('hidden');
+  $('roomCode').textContent = code;
+  history.replaceState(null, '', '#' + code);
+}
+function setStatus(txt, on){ $('statusTxt').textContent = txt; $('dot').classList.toggle('on', !!on); }
+function log(txt, cls=''){
+  const d = document.createElement('div');
+  d.className = 'msg ' + cls; d.textContent = txt;
+  $('log').appendChild(d); $('log').scrollTop = 1e9;
+}
+
+/* ---------------- ANFITRIÃO ---------------- */
+function startHost(){
+  role = 'host';
+  const code = genCode();
+  peer = new Peer(PREFIX + code);
+  peer.on('error', e => {
+    if (e.type === 'unavailable-id') return startHost();
+    setStatus('Erro: ' + e.type);
+  });
+  peer.on('open', () => {
+    showRoom(code);
+    $('btnShare').classList.remove('hidden');
+    $('emptyTitle').textContent = 'Sala pronta';
+    $('emptyText').textContent = 'Envie o link para seu amigo e clique em “Compartilhar tela”. Escolha a aba do filme e marque “Compartilhar áudio da guia”.';
+    setStatus('Aguardando seu amigo', false);
+  });
+  peer.on('connection', conn => {
+    conns.push(conn);
+    conn.on('open', () => {
+      setStatus(conns.length + ' conectado(s)', true);
+      log('Seu amigo entrou na sala.', 'sys');
+      if (stream) peer.call(conn.peer, stream);
+    });
+    conn.on('data', d => { if (d.t === 'chat') { log(d.msg); relay(d, conn); } });
+    conn.on('close', () => {
+      conns = conns.filter(c => c !== conn);
+      setStatus(conns.length ? conns.length + ' conectado(s)' : 'Aguardando seu amigo', conns.length > 0);
+      log('Seu amigo saiu.', 'sys');
+    });
+  });
+}
+function relay(d, from){ conns.forEach(c => c !== from && c.open && c.send(d)); }
+
+async function shareScreen(){
+  try{
+    stream = await navigator.mediaDevices.getDisplayMedia({
+      video: { frameRate: 30 },
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    });
+  }catch(e){ return; }
+  const v = $('video'); v.srcObject = stream; v.muted = true; v.play();
+  $('empty').classList.add('hidden');
+  $('btnShare').classList.add('hidden'); $('btnStop').classList.remove('hidden');
+  conns.forEach(c => c.open && peer.call(c.peer, stream));
+  if (!stream.getAudioTracks().length) log('Sem áudio: ao compartilhar, marque “Compartilhar áudio da guia”.', 'sys');
+  stream.getVideoTracks()[0].addEventListener('ended', stopShare);
+}
+function stopShare(){
+  if (!stream) return;
+  stream.getTracks().forEach(t => t.stop()); stream = null;
+  $('video').srcObject = null;
+  $('empty').classList.remove('hidden');
+  $('btnShare').classList.remove('hidden'); $('btnStop').classList.add('hidden');
+}
+
+/* ---------------- CONVIDADO ---------------- */
+function startGuest(code){
+  role = 'guest';
+  code = code.trim().toUpperCase();
+  if (code.length < 6) return;
+  peer = new Peer();
+  peer.on('error', e => {
+    setStatus(e.type === 'peer-unavailable' ? 'Sala não encontrada. Confira o código.' : 'Erro: ' + e.type);
+  });
+  peer.on('open', () => {
+    showRoom(code);
+    $('emptyTitle').textContent = 'Entrando na sala…';
+    $('emptyText').textContent = 'Assim que seu amigo começar a compartilhar, o filme aparece aqui.';
+    myConn = peer.connect(PREFIX + code, { reliable: true });
+    myConn.on('open', () => {
+      setStatus('Na sala', true);
+      $('emptyTitle').textContent = 'Você está na sala';
+      log('Você entrou na sala.', 'sys');
+    });
+    myConn.on('data', d => { if (d.t === 'chat') log(d.msg); });
+    myConn.on('close', () => { setStatus('Anfitrião saiu', false); $('empty').classList.remove('hidden'); $('emptyTitle').textContent = 'A sala foi encerrada'; });
+  });
+  peer.on('call', call => {
+    call.answer();
+    call.on('stream', s => {
+      const v = $('video'); v.srcObject = s; v.muted = false;
+      $('empty').classList.add('hidden');
+      v.play().catch(() => { v.muted = true; v.play(); $('btnUnmute').classList.remove('hidden'); });
+    });
+    call.on('close', () => { $('empty').classList.remove('hidden'); $('emptyTitle').textContent = 'Transmissão pausada'; $('emptyText').textContent = 'Aguardando seu amigo compartilhar de novo.'; });
+  });
+}
+
+/* ---------------- UI ---------------- */
+$('btnHost').onclick = startHost;
+$('btnJoin').onclick = () => startGuest($('codeIn').value);
+$('codeIn').addEventListener('keydown', e => e.key === 'Enter' && startGuest($('codeIn').value));
+$('btnShare').onclick = shareScreen;
+$('btnStop').onclick = stopShare;
+$('btnLeave').onclick = () => { history.replaceState(null,'',location.pathname); location.reload(); };
+$('btnFull').onclick = () => ($('screen').requestFullscreen || $('screen').webkitRequestFullscreen).call($('screen'));
+$('btnUnmute').onclick = () => { $('video').muted = false; $('btnUnmute').classList.add('hidden'); };
+$('btnCopy').onclick = async () => {
+  const link = location.origin + location.pathname + '#' + $('roomCode').textContent;
+  try { await navigator.clipboard.writeText(link); $('btnCopy').textContent = 'Copiado'; }
+  catch { prompt('Copie o link:', link); }
+  setTimeout(() => $('btnCopy').textContent = 'Copiar link', 1500);
+};
+$('chatForm').onsubmit = e => {
+  e.preventDefault();
+  const msg = $('chatIn').value.trim(); if (!msg) return;
+  const d = { t:'chat', msg };
+  if (role === 'host') conns.forEach(c => c.open && c.send(d));
+  else if (myConn && myConn.open) myConn.send(d);
+  else return;
+  log(msg, 'me'); $('chatIn').value = '';
+};
+
+// Link com #CODIGO preenche o campo de entrada
+if (location.hash.length > 1) $('codeIn').value = location.hash.slice(1, 7).toUpperCase();
+</script>
+</body>
+</html>
