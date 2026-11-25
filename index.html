@@ -368,7 +368,18 @@ function tuneOpus(sdp, params){
   return fm ? sdp.replace(re, line) : sdp.replace(m[0], m[0] + '\r\n' + line);
 }
 const voiceSdp  = sdp => tuneOpus(sdp, VOICE_OPUS);
-const screenSdp = sdp => tuneOpus(sdp, SCREEN_OPUS);
+// Vídeo do filme já começa com ~3 Mbps (em vez de subir devagar a partir de quase nada)
+function tuneVideoStart(sdp){
+  const extra = 'x-google-start-bitrate=3000;x-google-min-bitrate=1000';
+  const pts = [...sdp.matchAll(/a=rtpmap:(\d+) (VP8|VP9|H264|AV1)\/90000/gi)].map(m => m[1]);
+  for (const pt of pts){
+    const re = new RegExp('a=fmtp:' + pt + ' ([^\\r\\n]*)');
+    if (re.test(sdp)) sdp = sdp.replace(re, (l, p) => p.includes('x-google-start') ? l : 'a=fmtp:' + pt + ' ' + p + ';' + extra);
+    else sdp = sdp.replace(new RegExp('(a=rtpmap:' + pt + ' [^\\r\\n]*)'), '$1\r\na=fmtp:' + pt + ' ' + extra);
+  }
+  return sdp;
+}
+const screenSdp = sdp => tuneVideoStart(tuneOpus(sdp, SCREEN_OPUS));
 
 // Ajusta bitrate/prioridade dos senders assim que a conexão sobe.
 function tuneSenders(call, kind){
@@ -383,7 +394,8 @@ function tuneSenders(call, kind){
       e.priority = 'high'; e.networkPriority = 'high';
       if (s.track.kind === 'video'){
         e.maxBitrate = QUALITY[quality].bitrate; e.maxFramerate = 30;
-        p.degradationPreference = 'maintain-framerate';
+        // Sem banda: reduz um pouco a fluidez E a resolução, para o texto continuar legível
+        p.degradationPreference = 'balanced';
       } else {
         e.maxBitrate = kind === 'screen' ? 510000 : 128000;
       }
