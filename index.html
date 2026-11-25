@@ -716,14 +716,24 @@ function callScreen(id){
 }
 
 async function shareScreen(){
+  // Continua na aba do Cine Jusce em vez de pular para a aba compartilhada (Chrome/Edge)
+  const controller = window.CaptureController ? new CaptureController() : null;
   try{
-    stream = await navigator.mediaDevices.getDisplayMedia({
+    const opts = {
       video: { width: { ideal: QUALITY[quality].w }, height: { ideal: QUALITY[quality].h }, frameRate: { ideal: 30, max: 60 } },
       audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:2, sampleRate:48000 },
       systemAudio: 'include'
-    });
+    };
+    if (controller) opts.controller = controller;
+    stream = await navigator.mediaDevices.getDisplayMedia(opts);
   }catch(e){ return; }
   const vt = stream.getVideoTracks()[0];
+  if (controller && controller.setFocusBehavior){
+    const surface = vt.getSettings().displaySurface;
+    if (surface === 'browser' || surface === 'window'){
+      try { controller.setFocusBehavior('no-focus-change'); } catch(_){}
+    }
+  }
   if ('contentHint' in vt) vt.contentHint = 'motion';
   stream.getAudioTracks().forEach(t => { if ('contentHint' in t) t.contentHint = 'music'; });
   const v = $('video'); v.srcObject = stream; v.muted = true; v.play();
