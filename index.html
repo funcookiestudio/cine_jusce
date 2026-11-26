@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=DM+Sans:wght@400;500&family=Special+Elite&family=Limelight&family=Monoton&family=Bungee&family=VT323&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" integrity="sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR" crossorigin="anonymous"></script>
 <style>
 :root{
   --velvet:#2a0f18; --wine:#4a1424; --wine-2:#5e1c31;
@@ -500,7 +500,7 @@ dialog.sheet::backdrop{background:rgba(8,2,4,.3)}
     <div class="pane" id="paneChat" role="tabpanel" aria-labelledby="tabChat">
       <div id="log" aria-live="polite"></div>
       <form class="send" id="chatForm">
-        <input id="chatIn" placeholder="Mensagem" autocomplete="off" enterkeyhint="send" aria-label="Mensagem">
+        <input id="chatIn" maxlength="500" placeholder="Mensagem" autocomplete="off" enterkeyhint="send" aria-label="Mensagem">
         <button class="icon-btn" type="submit" aria-label="Enviar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </button>
@@ -741,7 +741,12 @@ function setupMuteBtn(btn, label, onToggle){
   };
 }
 
+// Limites para dados que chegam de outras pessoas
+const cleanName = n => (typeof n === 'string' ? n : '').replace(/\s+/g, ' ').trim().slice(0, 24) || 'Alguém';
+const cleanMsg  = m => (typeof m === 'string' ? m : '').trim().slice(0, 500);
+
 function person(id, name){
+  name = name ? cleanName(name) : name;
   let p = people.get(id);
   if (p){ if (name && name !== p.name){ p.name = name; p.nameEl.textContent = name; p.slider.setAttribute('aria-label', 'Volume de ' + name); } return p; }
   name = name || 'Alguém';
@@ -947,11 +952,14 @@ async function startHost(){
   });
   peer.on('connection', conn => {
     conns.push(conn);
-    const name = (conn.metadata && conn.metadata.name) || 'Alguém';
+    // O nome vem de quem conectou e é fixado aqui: mensagens repassadas usam
+    // este nome, nunca o que vier dentro da mensagem (evita se passar por outro).
+    const name = cleanName(conn.metadata && conn.metadata.name);
+    conn.cineName = name;
     conn.on('open', () => {
       // Lista de quem já está na sala: o novato liga para todos (voz em malha)
       const roster = [{ id: peer.id, name: myName }].concat(
-        conns.filter(c => c !== conn && c.open).map(c => ({ id: c.peer, name: (c.metadata && c.metadata.name) || 'Alguém' }))
+        conns.filter(c => c !== conn && c.open).map(c => ({ id: c.peer, name: c.cineName }))
       );
       conn.send({ t: 'roster', peers: roster });
       if (paused) conn.send({ t: 'pause', on: true, name: pausedBy });
@@ -963,9 +971,17 @@ async function startHost(){
       watchDrop(conn.peerConnection, () => conn.close());
     });
     conn.on('data', d => {
-      if (d.t === 'chat') { log(d.msg, '', d.name); relay(d, conn); }
+      if (!d || typeof d !== 'object') return;
+      if (d.t === 'chat'){
+        const msg = cleanMsg(d.msg); if (!msg) return;
+        const m = { t: 'chat', msg, name };
+        log(msg, '', name); relay(m, conn);
+      }
       else if (d.t === 'resend' && stream) callScreen(conn.peer); // convidado pediu o vídeo de novo
-      else if (d.t === 'pause') { setPaused(!!d.on, d.name); relay(d, conn); log(d.name + (d.on ? ' pausou o filme' : ' continuou o filme'), 'sys'); }
+      else if (d.t === 'pause'){
+        const m = { t: 'pause', on: !!d.on, name };
+        setPaused(m.on, name); relay(m, conn); log(name + (m.on ? ' pausou o filme' : ' continuou o filme'), 'sys');
+      }
     });
     conn.on('close', () => {
       conns = conns.filter(c => c !== conn);
@@ -1094,7 +1110,7 @@ async function startGuest(code){
       showEmpty('Você está na sala', 'O filme aparece aqui assim que o anfitrião compartilhar.');
     });
     myConn.on('data', d => {
-      if (d.t === 'chat') log(d.msg, '', d.name);
+      if (d.t === 'chat') log(cleanMsg(d.msg), '', cleanName(d.name));
       else if (d.t === 'roster') d.peers.forEach(p => callVoice(p.id, p.name));
       else if (d.t === 'pause') { setPaused(!!d.on, d.name); log(d.name + (d.on ? ' pausou o filme' : ' continuou o filme'), 'sys'); }
       else if (d.t === 'join') { person(d.id, d.name); log(d.name + ' entrou', 'sys'); }
