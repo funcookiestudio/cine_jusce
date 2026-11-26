@@ -7,7 +7,7 @@
 <title>Cine Jusce</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=DM+Sans:wght@400;500&family=Special+Elite&family=Limelight&family=Monoton&family=Bungee&family=VT323&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
 :root{
@@ -36,31 +36,33 @@ svg{display:block}
 .btn.quiet:hover{background:rgba(42,15,24,.06)}
 
 /* ---------- Entrada ---------- */
-#home{min-height:100%;display:grid;place-items:center;
-  padding:max(24px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom))}
-.home-card{width:min(420px,100%);display:grid;gap:28px}
-.brand h1{font-size:clamp(40px,11vw,56px);font-weight:800}
-.brand p{margin:10px 0 0;color:var(--muted)}
-.field{display:grid;gap:6px}
-.field span{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.field input{width:100%;min-height:48px;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.25);color:var(--ticket);
-  padding:0 14px;font-size:17px}
-.field input:focus{outline:none;border-color:var(--lamp)}
+:root{--edge:clamp(18px,5vw,90px);--cream:#f0d9a8;--wine-ink:#5a0b17;--gold:#d9b77a}
+#home{position:relative;min-height:100%;display:grid;place-items:center;background:#0c0507;
+  background-image:radial-gradient(ellipse 55% 75% at 50% 0,rgba(255,235,190,.17),transparent 70%);
+  padding:max(52px,calc(env(safe-area-inset-top) + 40px)) calc(var(--edge) + 16px) max(28px,env(safe-area-inset-bottom))}
+.home-card{width:min(400px,100%);display:grid;gap:22px}
+.brand{text-align:center}
+.brand small{font:400 12px "Special Elite",monospace;letter-spacing:.25em;color:var(--gold)}
+.brand h1{margin-top:6px;font-size:clamp(40px,11vw,56px);font-weight:800;color:#ffe9c2;text-shadow:0 0 30px rgba(255,220,160,.25)}
+.brand p{margin:8px 0 0;font:400 14px "Special Elite",monospace;color:#c9a978}
 .tickets{display:flex;flex-direction:column;gap:18px}
-.ticket{background:var(--ticket);color:var(--ink);border-radius:12px;padding:24px 28px;display:flex;flex-direction:column;gap:12px;
+.ticket{background:var(--cream);color:var(--wine-ink);border-radius:8px;padding:20px 26px;display:flex;flex-direction:column;gap:10px;text-align:center;
+  box-shadow:inset 0 0 0 4px var(--cream),inset 0 0 0 6px var(--wine-ink);
   -webkit-mask:radial-gradient(circle 11px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,
                radial-gradient(circle 11px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;
           mask:radial-gradient(circle 11px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,
                radial-gradient(circle 11px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
-.ticket h2{font-size:clamp(24px,6.5vw,28px);font-weight:800}
-.ticket p{margin:0 0 4px;font-size:15px;opacity:.75}
-.ticket .btn{width:100%}
+.ticket .ad{font:400 11px "Special Elite",monospace;letter-spacing:.32em;opacity:.8}
+.ticket h2{font-size:clamp(23px,6.5vw,27px);font-weight:800}
+.ticket p{margin:0 0 4px;font-size:14px;opacity:.75}
+.ticket .btn{width:100%;background:var(--wine-ink);color:var(--cream);font:400 17px "Special Elite",monospace;border-radius:6px}
+.ticket .btn:hover{background:#74101f}
 .ticket .row{display:flex;gap:10px}
 .ticket .row .btn{width:auto}
-.ticket input.code{flex:1;width:100%;min-width:0;min-height:48px;border:2px solid var(--ink);border-radius:10px;background:#fff9ea;color:var(--ink);
-  padding:0 14px;font:500 18px "Bricolage Grotesque",sans-serif;letter-spacing:.16em;text-transform:uppercase}
+.ticket input.code{flex:1;width:100%;min-width:0;min-height:48px;border:2px solid var(--wine-ink);border-radius:6px;background:#fff4dc;color:var(--wine-ink);
+  padding:0 12px;font:400 19px "Special Elite",monospace;letter-spacing:.22em;text-transform:uppercase;text-align:center}
 .ticket input.code:focus{outline:none;box-shadow:0 0 0 3px rgba(232,163,61,.6)}
-.hint{margin:0;font-size:14px;color:var(--muted);text-align:center}
+.hint{margin:0;font-size:13px;color:#a98c66;text-align:center}
 /* Quem chega por link vê “Vou assistir” primeiro */
 /* Quem chega por convite vê só o ingresso VIP */
 .invited #createTicket{display:none}
@@ -69,8 +71,220 @@ svg{display:block}
   box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
 .ticket.vip h2{font-size:clamp(34px,9vw,40px);letter-spacing:.12em}
 .ticket.vip p{opacity:.8}
-.ticket.vip input.code{border-color:#2a1a05}
-.ticket.vip .btn.lamp{background:var(--ink);color:#f9e08a}
+.ticket.vip{box-shadow:inset 0 0 0 4px rgba(255,255,255,.25),inset 0 0 0 6px #7a5410}
+.ticket.vip input.code{border-color:#2a1a05;color:#2a1a05}
+.ticket.vip .btn{background:#2a1a05;color:#f9e08a}
+
+/* Botão de perfil */
+.profile-btn{display:grid;place-items:center;width:42px;height:42px;flex:none;border-radius:50%;border:1px solid rgba(217,183,122,.55);
+  background:rgba(0,0,0,.35);color:#ffe9c2;font:800 17px "Bricolage Grotesque",sans-serif}
+.profile-btn svg{width:20px;height:20px}
+#home .profile-btn{position:absolute;z-index:2;top:max(40px,calc(env(safe-area-inset-top) + 32px));right:calc(var(--edge) + 12px)}
+.top .profile-btn{width:38px;height:38px;font-size:15px}
+
+/* Perfil / configurações */
+dialog.sheet{border:0;padding:0;background:transparent;color:inherit;width:100%;max-width:100%;max-height:100%;margin:auto 0 0}
+dialog.sheet::backdrop{background:rgba(8,2,4,.3)}
+.sheet form{width:min(440px,100%);margin:0 auto;background:var(--cream);color:var(--wine-ink);border-radius:18px 18px 0 0;
+  padding:22px 22px max(22px,env(safe-area-inset-bottom));display:grid;gap:18px}
+@media (min-width:600px){ dialog.sheet{margin:auto} .sheet form{border-radius:14px} }
+.sheet h2{font-size:24px}
+.sheet .why{margin:-10px 0 0;font-size:14px;opacity:.75}
+.pf{display:grid;gap:6px}
+.pf>span{font:400 12px "Special Elite",monospace;letter-spacing:.18em;text-transform:uppercase;opacity:.8}
+.pf input[type=text]{min-height:48px;border:2px solid rgba(90,11,23,.35);border-radius:8px;background:#fff4dc;color:var(--wine-ink);padding:0 14px;font-size:17px}
+.pf input[type=text]:focus{outline:none;border-color:var(--wine-ink)}
+.pf input:disabled{opacity:.55}
+.pf small{font-size:13px;opacity:.7}
+.seg{display:flex;border:2px solid var(--wine-ink);border-radius:8px;overflow:hidden}
+.seg label{flex:1;position:relative}
+.seg input{position:absolute;opacity:0}
+.seg span{display:block;text-align:center;padding:10px 6px;font-weight:500;cursor:pointer}
+.seg input:checked+span{background:var(--wine-ink);color:var(--cream)}
+.seg input:focus-visible+span{outline:3px solid var(--lamp);outline-offset:-3px}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer}
+.switch input{appearance:none;width:48px;height:28px;border-radius:999px;background:rgba(90,11,23,.3);position:relative;flex:none;cursor:pointer;transition:background .2s}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff4dc;transition:transform .2s}
+.switch input:checked{background:var(--wine-ink)}
+.switch input:checked::after{transform:translateX(20px)}
+.sheet .actions{display:flex;gap:10px}
+.sheet .actions .btn{flex:1;background:var(--wine-ink);color:var(--cream);font:400 17px "Special Elite",monospace}
+.sheet .actions .btn.quiet{flex:none;background:transparent;color:var(--wine-ink)}
+
+/* Cortina: moldura da entrada e transição entre as cenas */
+.curtain{position:fixed;inset:0;z-index:40;pointer-events:none}
+.curtain.closed{pointer-events:auto}
+.drape{position:absolute;top:0;bottom:0;width:calc(50% + 2px);will-change:transform;
+  background:
+    linear-gradient(180deg,rgba(0,0,0,.3),transparent 18%,transparent 75%,rgba(0,0,0,.5)),
+    repeating-linear-gradient(90deg,#3e0710 0,#7d1322 10px,#b22433 17px,#7d1322 24px,#3e0710 34px);
+  transition:transform 1s cubic-bezier(.65,0,.25,1)}
+.drape.l{left:0;box-shadow:10px 0 28px rgba(0,0,0,.7)}
+.drape.r{right:0;box-shadow:-10px 0 28px rgba(0,0,0,.7)}
+.valance{position:absolute;left:0;right:0;top:0;height:28px;z-index:1;transition:transform .6s ease;
+  background:radial-gradient(circle at 50% 0,#9c1a2a 0 18px,#4a0913 19px 21px,transparent 22px) 0 0/40px 28px repeat-x,
+             linear-gradient(#9c1a2a,#9c1a2a) 0 0/100% 8px no-repeat;
+  filter:drop-shadow(0 6px 8px rgba(0,0,0,.6))}
+.curtain.closed .drape{transform:none}
+.curtain.framed .drape.l{transform:translateX(calc(-100% + var(--edge)))}
+.curtain.framed .drape.r{transform:translateX(calc(100% - var(--edge)))}
+.curtain.open .drape.l{transform:translateX(-100%)}
+.curtain.open .drape.r{transform:translateX(100%)}
+.curtain.open .valance{transform:translateY(-110%)}
+.curtain.open .drape{box-shadow:none}
+
+/* ================= TEMAS: cortina (padrão) · marquise · locadora ================= */
+.only-marquise,.only-locadora{display:none!important}
+[data-theme=marquise] .only-marquise{display:flex!important}
+[data-theme=locadora] .only-locadora{display:block!important}
+[data-theme=marquise] .curtain,[data-theme=locadora] .curtain{display:none}
+
+/* Lâmpadas (letreiro da marquise e transição) */
+.bulbs{display:none;position:absolute;inset:6px;border-radius:10px;pointer-events:none;
+  background:
+   radial-gradient(circle,#ffe7a6 2.6px,transparent 3.2px) 0 0/16px 16px repeat-x,
+   radial-gradient(circle,#ffe7a6 2.6px,transparent 3.2px) 0 100%/16px 16px repeat-x,
+   radial-gradient(circle,#ffe7a6 2.6px,transparent 3.2px) 0 0/16px 16px repeat-y,
+   radial-gradient(circle,#ffe7a6 2.6px,transparent 3.2px) 100% 0/16px 16px repeat-y;
+  filter:drop-shadow(0 0 4px #ffcf6b)}
+@keyframes blink{50%{opacity:.5}}
+@media (prefers-reduced-motion:no-preference){ .bulbs{animation:blink 1.6s steps(2) infinite} }
+
+/* --- Marquise --- */
+[data-theme=marquise] #home{background:#1d0a10;background-image:radial-gradient(ellipse at 50% 0,#5e1c31,transparent 65%);
+  padding:max(70px,calc(env(safe-area-inset-top) + 62px)) 20px max(28px,env(safe-area-inset-bottom))}
+[data-theme=marquise] #home .profile-btn{right:20px;top:max(16px,calc(env(safe-area-inset-top) + 10px))}
+[data-theme=marquise] .brand{position:relative;padding:22px 16px 16px;border-radius:14px;background:#2a0f18;box-shadow:inset 0 0 0 3px var(--lamp)}
+[data-theme=marquise] .brand .bulbs{display:block}
+[data-theme=marquise] .brand small{font:500 12px "DM Sans",sans-serif;letter-spacing:.32em;color:var(--lamp)}
+[data-theme=marquise] .brand h1{font:400 clamp(38px,11vw,52px)/1 "Limelight",serif;color:#ffe7a6;text-shadow:0 0 14px rgba(255,200,100,.55)}
+[data-theme=marquise] .brand p{font:400 13px "DM Sans",sans-serif;color:rgba(242,227,198,.75)}
+.board{justify-content:center;gap:4px;margin-top:10px}
+.board span{background:var(--ticket);color:var(--ink);font:400 12px "Bungee",sans-serif;padding:2px 6px;border-radius:2px}
+[data-theme=marquise] .ticket{text-align:left;border-radius:12px}
+[data-theme=marquise] .ticket .ad{display:none}
+[data-theme=marquise] .ticket:not(.vip){background:var(--ticket);color:var(--ink);box-shadow:none}
+[data-theme=marquise] .ticket:not(.vip) .btn{background:var(--ink);color:var(--ticket);font:500 16px "DM Sans",sans-serif;border-radius:9px}
+[data-theme=marquise] .ticket:not(.vip) .row .btn{background:var(--lamp);color:var(--ink)}
+[data-theme=marquise] .ticket:not(.vip) input.code{font:500 18px "Bricolage Grotesque",sans-serif;letter-spacing:.16em;border-color:var(--ink);background:#fff9ea;color:var(--ink);text-align:left;border-radius:9px}
+[data-theme=marquise] .hint{color:var(--muted)}
+
+/* --- Locadora --- */
+[data-theme=locadora] #home{background:#140b22;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:100% 4px;
+  padding:max(70px,calc(env(safe-area-inset-top) + 62px)) 20px max(28px,env(safe-area-inset-bottom))}
+[data-theme=locadora] #home .profile-btn{right:20px;top:max(16px,calc(env(safe-area-inset-top) + 10px));border-color:#5ee6ff;color:#5ee6ff;font-family:"Bungee",sans-serif}
+[data-theme=locadora] .brand small{display:none}
+[data-theme=locadora] .brand h1{font:400 clamp(30px,9.5vw,54px)/1.1 "Monoton",sans-serif;color:#ff4fa3;text-shadow:0 0 6px #ff4fa3,0 0 22px rgba(255,79,163,.7)}
+[data-theme=locadora] .brand p{font:700 12px "DM Sans",sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#5ee6ff;text-shadow:0 0 8px rgba(94,230,255,.6)}
+[data-theme=locadora] .ticket{position:relative;text-align:left;border-radius:6px;padding-top:28px}
+[data-theme=locadora] .ticket::before{content:"";position:absolute;left:0;right:0;top:0;height:10px;background:linear-gradient(90deg,#ff4fa3 0 33%,#ffd23f 33% 66%,#5ee6ff 66%)}
+[data-theme=locadora] .ticket .ad{font:400 11px "Bungee",sans-serif;letter-spacing:.06em}
+[data-theme=locadora] .ticket:not(.vip){background:#fdf7e8;color:#140b22;box-shadow:none}
+[data-theme=locadora] .ticket:not(.vip) .btn{background:#140b22;color:#ffd23f;font:400 15px "Bungee",sans-serif;border-radius:6px}
+[data-theme=locadora] .ticket:not(.vip) .row .btn{background:#ff4fa3;color:#140b22}
+[data-theme=locadora] .ticket:not(.vip) input.code{font:400 18px "Bungee",sans-serif;letter-spacing:.12em;border-color:#140b22;background:#fff;color:#140b22;text-align:left}
+[data-theme=locadora] .hint{color:#9a8bb8}
+.rewind{margin:-8px 0 0;font:400 12px "Bungee",sans-serif;color:#ffd23f;text-align:center;opacity:.85;letter-spacing:.1em}
+
+/* --- Transições dos temas marquise e locadora --- */
+.trans{position:fixed;inset:0;z-index:40;display:none;place-items:center;pointer-events:none;opacity:0}
+.trans.on{opacity:1;pointer-events:auto}
+[data-theme=marquise] .t-marquee,[data-theme=locadora] .t-vhs{display:grid}
+/* Marquise: as luzes da sala se apagam e o letreiro acende */
+.t-marquee{background:#120609;transition:opacity .5s ease}
+.t-marquee .bulbs{display:block;inset:16px;border-radius:16px}
+.t-marquee .tm{text-align:center;padding:0 40px;transform:scale(.96);transition:transform .6s ease}
+.t-marquee.on .tm{transform:none}
+.t-marquee small{display:block;font:500 12px "DM Sans",sans-serif;letter-spacing:.32em;color:var(--lamp)}
+.t-marquee b{display:block;margin-top:8px;font:400 clamp(28px,8vw,46px)/1.1 "Limelight",serif;color:#ffe7a6;text-shadow:0 0 16px rgba(255,200,100,.6)}
+@media (prefers-reduced-motion:no-preference){ .t-marquee.on .bulbs{animation:bulbsOn .5s steps(5),blink 1s steps(2) .5s infinite} }
+@keyframes bulbsOn{0%{opacity:0}40%{opacity:1}60%{opacity:.2}100%{opacity:1}}
+/* Locadora: TV de tubo liga em PLAY com chuvisco, depois "desliga" para a sala */
+.t-vhs{background:#07070d;transform:scaleY(.004);transition:transform .45s cubic-bezier(.7,0,.3,1),opacity .3s ease .15s}
+.t-vhs.on{transform:none;transition:transform .35s cubic-bezier(.2,.8,.3,1),opacity .1s}
+.t-vhs::before{content:"";position:absolute;inset:0;opacity:.35;mix-blend-mode:screen;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.t-vhs::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(rgba(0,0,0,.35) 0 2px,transparent 2px 4px)}
+@media (prefers-reduced-motion:no-preference){ .t-vhs.on::before{animation:snow .25s steps(4) infinite} }
+@keyframes snow{0%{background-position:0 0}25%{background-position:-40px 30px}50%{background-position:50px -20px}75%{background-position:-30px -50px}}
+.t-vhs .osd{position:absolute;z-index:1;font:400 clamp(30px,8vw,44px) "VT323",monospace;color:#e8fff0;text-shadow:2px 0 #ff4fa3,-2px 0 #5ee6ff}
+.t-vhs .osd.play{top:max(40px,env(safe-area-inset-top));left:28px}
+.t-vhs .osd.sp{bottom:max(40px,env(safe-area-inset-bottom));right:28px;font-size:clamp(22px,6vw,32px)}
+.t-vhs .osd.mid{position:relative;font-size:clamp(26px,7vw,40px);letter-spacing:.06em;text-align:center;padding:0 24px}
+@media (prefers-reduced-motion:reduce){ .trans,.trans.on{transition:none} .t-vhs{transform:none} }
+
+/* ================= SALA em cada tema ================= */
+.screen::before{content:"";position:absolute;left:0;right:0;top:0;z-index:2;pointer-events:none}
+
+/* Cortina: palco escuro, dourado e bambinela vermelha sobre a tela */
+[data-theme=cortina] #room{--lamp:#d9b77a;--ticket:#f0d9a8;--ink:#5a0b17;--line:rgba(217,183,122,.18);--faint:rgba(240,217,168,.08);--muted:rgba(240,217,168,.6);
+  background:#0c0507;background-image:radial-gradient(ellipse 60% 45% at 50% 0,rgba(255,235,190,.1),transparent 70%)}
+[data-theme=cortina] .chip b{font:400 18px "Special Elite",monospace;letter-spacing:.2em}
+[data-theme=cortina] .empty h2{color:#ffe9c2}
+[data-theme=cortina] .screen::before{height:22px;
+  background:radial-gradient(circle at 50% 0,#9c1a2a 0 14px,#4a0913 15px 16px,transparent 17px) 0 0/30px 22px repeat-x,
+             linear-gradient(#9c1a2a,#9c1a2a) 0 0/100% 6px no-repeat;filter:drop-shadow(0 4px 6px rgba(0,0,0,.6))}
+[data-theme=cortina] .tab{font-family:"Special Elite",monospace;letter-spacing:.06em}
+
+/* Marquise: veludo vinho e fileira de lâmpadas sobre a tela */
+[data-theme=marquise] #room{background:#1d0a10;background-image:radial-gradient(ellipse at 50% 0,#5e1c31,transparent 60%)}
+[data-theme=marquise] .chip{box-shadow:0 0 0 2px var(--lamp),0 0 14px rgba(232,163,61,.45)}
+[data-theme=marquise] .chip b{font:400 19px "Limelight",serif;letter-spacing:.12em}
+[data-theme=marquise] .empty h2{font:400 clamp(22px,5vw,32px) "Limelight",serif;color:#ffe7a6;text-shadow:0 0 12px rgba(255,200,100,.5)}
+[data-theme=marquise] .screen::before{height:14px;background:#2a0f18 radial-gradient(circle,#ffe7a6 2.6px,transparent 3.2px) 0 50%/16px 14px repeat-x;
+  filter:drop-shadow(0 0 4px #ffcf6b)}
+@media (prefers-reduced-motion:no-preference){ [data-theme=marquise] .screen::before{animation:blink 1.6s steps(2) infinite} }
+
+/* Locadora: roxo com linhas de TV, neon rosa e ciano, faixa de fita VHS */
+[data-theme=locadora] #room{--lamp:#ff4fa3;--ticket:#f4ecff;--ink:#140b22;--line:rgba(94,230,255,.2);--faint:rgba(255,255,255,.07);--muted:rgba(214,200,255,.65);--mint:#5ee6ff;
+  background:#140b22;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:100% 4px}
+[data-theme=locadora] .chip{background:#fdf7e8;border-radius:6px;box-shadow:inset 0 3px 0 #ffd23f}
+[data-theme=locadora] .chip b{font:400 17px "Bungee",sans-serif;letter-spacing:.1em}
+[data-theme=locadora] .empty h2{font:400 clamp(20px,4.5vw,28px) "Bungee",sans-serif;color:#ff4fa3;text-shadow:0 0 6px #ff4fa3,0 0 18px rgba(255,79,163,.6)}
+[data-theme=locadora] .screen::before{height:6px;background:linear-gradient(90deg,#ff4fa3 0 33%,#ffd23f 33% 66%,#5ee6ff 66%)}
+[data-theme=locadora] .tab{font:400 13px "Bungee",sans-serif;letter-spacing:.04em}
+[data-theme=locadora] .tab[aria-selected=true]{border-bottom-color:#5ee6ff;text-shadow:0 0 8px rgba(94,230,255,.5)}
+[data-theme=locadora] .msg b{color:#5ee6ff}
+[data-theme=locadora] .profile-btn{border-color:#5ee6ff;color:#5ee6ff;font-family:"Bungee",sans-serif}
+
+/* ================= PERFIL em cada tema ================= */
+.sheet form{position:relative;transition:background .3s,color .3s}
+/* Cortina: ingresso "Admit one" com moldura dupla e babado no topo */
+[data-theme=cortina] .sheet form{box-shadow:inset 0 0 0 5px var(--cream),inset 0 0 0 7px var(--wine-ink);padding-top:38px}
+[data-theme=cortina] .sheet form::before{content:"";position:absolute;left:0;right:0;top:0;height:20px;border-radius:inherit;
+  background:radial-gradient(circle at 50% 0,#9c1a2a 0 13px,#4a0913 14px 15px,transparent 16px) 0 0/28px 20px repeat-x,
+             linear-gradient(#9c1a2a,#9c1a2a) 0 0/100% 5px no-repeat}
+[data-theme=cortina] .sheet h2{font:400 26px "Special Elite",monospace}
+
+/* Marquise: placa de letreiro vinho com lâmpadas */
+[data-theme=marquise] .sheet form{background:#2a0f18;color:var(--ticket);box-shadow:inset 0 0 0 3px var(--lamp);padding-top:30px}
+[data-theme=marquise] .sheet form::before{content:"";position:absolute;left:8px;right:8px;top:7px;height:12px;pointer-events:none;
+  background:radial-gradient(circle,#ffe7a6 2.4px,transparent 3px) 0 50%/16px 12px repeat-x;filter:drop-shadow(0 0 4px #ffcf6b)}
+@media (prefers-reduced-motion:no-preference){ [data-theme=marquise] .sheet form::before{animation:blink 1.6s steps(2) infinite} }
+[data-theme=marquise] .sheet h2{font:400 30px "Limelight",serif;color:#ffe7a6;text-shadow:0 0 12px rgba(255,200,100,.45)}
+[data-theme=marquise] .pf>span{font:500 12px "DM Sans",sans-serif;letter-spacing:.2em;color:var(--lamp);opacity:1}
+[data-theme=marquise] .pf input[type=text]{background:#fff9ea;color:var(--ink);border-color:transparent}
+[data-theme=marquise] .pf input[type=text]:focus{border-color:var(--lamp)}
+[data-theme=marquise] .seg{border-color:var(--lamp)}
+[data-theme=marquise] .seg input:checked+span{background:var(--lamp);color:var(--ink)}
+[data-theme=marquise] .switch input{background:rgba(242,227,198,.2)}
+[data-theme=marquise] .switch input:checked{background:var(--lamp)}
+[data-theme=marquise] .sheet .actions .btn{background:var(--lamp);color:var(--ink);font:500 16px "DM Sans",sans-serif}
+[data-theme=marquise] .sheet .actions .btn.quiet{background:transparent;color:var(--ticket)}
+
+/* Locadora: etiqueta de fita VHS com faixa colorida */
+[data-theme=locadora] .sheet form{background:#fdf7e8;color:#140b22;padding-top:34px;overflow:hidden}
+[data-theme=locadora] .sheet form::before{content:"";position:absolute;left:0;right:0;top:0;height:12px;
+  background:linear-gradient(90deg,#ff4fa3 0 33%,#ffd23f 33% 66%,#5ee6ff 66%)}
+[data-theme=locadora] .sheet h2{font:400 24px "Bungee",sans-serif}
+[data-theme=locadora] .pf>span{font:400 11px "Bungee",sans-serif;letter-spacing:.06em;opacity:.8}
+[data-theme=locadora] .pf input[type=text]{background:#fff;color:#140b22;border-color:#140b22;border-radius:6px}
+[data-theme=locadora] .seg{border-color:#140b22;border-radius:6px}
+[data-theme=locadora] .seg input:checked+span{background:#ff4fa3;color:#140b22}
+[data-theme=locadora] .switch input{background:rgba(20,11,34,.25)}
+[data-theme=locadora] .switch input:checked{background:#ff4fa3}
+[data-theme=locadora] .sheet .actions .btn{background:#140b22;color:#ffd23f;font:400 15px "Bungee",sans-serif;border-radius:6px}
+[data-theme=locadora] .sheet .actions .btn.quiet{background:transparent;color:#140b22}
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
   .ticket{transition:transform .2s}
   .ticket:hover{transform:rotate(-.6deg) translateY(-2px)}
@@ -180,24 +394,32 @@ svg{display:block}
 </style>
 </head>
 <body>
+<script>
+  // Tema escolhido no perfil, aplicado antes de desenhar a página
+  try { document.documentElement.dataset.theme = localStorage.getItem('sessao-tema') || 'cortina'; }
+  catch(e){ document.documentElement.dataset.theme = 'cortina'; }
+</script>
 
 <!-- ENTRADA -->
 <main id="home">
+  <button class="profile-btn" id="btnProfile" aria-label="Perfil e configurações"></button>
   <div class="home-card">
     <header class="brand">
+      <div class="bulbs"></div>
+      <small id="brandSmall">— APRESENTA —</small>
       <h1>Cine Jusce</h1>
-      <p>Filmes estranhos de produtoras duvidosas</p>
+      <p>filmes estranhos de produtoras duvidosas</p>
+      <div class="board only-marquise"><span>SESSÃO</span><span>HOJE</span><span>22H</span></div>
     </header>
-    <label class="field"><span>Seu nome</span>
-      <input id="nameIn" maxlength="24" placeholder="Como os outros vão te ver" autocomplete="nickname" enterkeyhint="next">
-    </label>
     <div class="tickets" id="homeTicket">
       <section class="ticket" id="createTicket">
+        <span class="ad" id="createAd">ADMIT · ONE</span>
         <h2>Vou passar o filme</h2>
         <p>Cria uma sala e gera um código para enviar ao seu amigo.</p>
         <button class="btn" id="btnHost">Criar sala</button>
       </section>
       <section class="ticket" id="joinTicket">
+        <span class="ad" id="joinAd">ADMIT · ONE</span>
         <h2 id="joinTitle">Vou assistir</h2>
         <p id="joinText">Digite o código que seu amigo mandou.</p>
         <div class="row">
@@ -206,7 +428,8 @@ svg{display:block}
         </div>
       </section>
     </div>
-    <p class="hint">Sem cadastro. Com fones, a voz fica mais limpa.</p>
+    <p class="hint">FUN🍪COOKIE STUDIO</p>
+    <p class="rewind only-locadora">◀◀ SEJA GENTIL, REBOBINE</p>
   </div>
 </main>
 
@@ -218,6 +441,7 @@ svg{display:block}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>
     </button>
     <div class="status"><span class="dot" id="dot"></span><span id="statusTxt">Conectando…</span></div>
+    <button class="profile-btn" id="btnProfileRoom" aria-label="Perfil e configurações"></button>
   </header>
 
   <section class="screen" id="screen">
@@ -301,6 +525,53 @@ svg{display:block}
 </div>
 
 <div class="toast hidden" id="toast" role="status"></div>
+
+<!-- PERFIL -->
+<dialog class="sheet" id="profile" aria-labelledby="profileTitle">
+  <form id="profileForm" method="dialog">
+    <h2 id="profileTitle">Seu perfil</h2>
+    <p class="why hidden" id="profileWhy">Antes de entrar, diga como os outros vão te ver.</p>
+    <label class="pf"><span>Seu nome</span>
+      <input type="text" id="nameIn" maxlength="24" placeholder="Como os outros vão te ver" autocomplete="nickname" enterkeyhint="done">
+      <small class="hidden" id="nameLocked">Para trocar o nome, saia da sala.</small>
+    </label>
+    <div class="pf"><span>Visual</span>
+      <div class="seg" role="radiogroup" aria-label="Visual do site">
+        <label><input type="radio" name="pfTheme" value="cortina"><span>Cortina</span></label>
+        <label><input type="radio" name="pfTheme" value="marquise"><span>Marquise</span></label>
+        <label><input type="radio" name="pfTheme" value="locadora"><span>Locadora</span></label>
+      </div>
+    </div>
+    <div class="pf"><span>Qualidade do filme</span>
+      <div class="seg" role="radiogroup" aria-label="Qualidade do filme">
+        <label><input type="radio" name="pfQuality" value="720"><span>720p · internet fraca</span></label>
+        <label><input type="radio" name="pfQuality" value="1080"><span>1080p · melhor</span></label>
+      </div>
+      <small>Vale quando você passa o filme.</small>
+    </div>
+    <label class="switch pf"><span style="font:500 16px 'DM Sans',sans-serif;letter-spacing:0;text-transform:none;opacity:1">Entrar com o microfone ligado</span>
+      <input type="checkbox" id="pfMic" role="switch">
+    </label>
+    <div class="actions">
+      <button class="btn quiet" type="button" id="profileCancel">Cancelar</button>
+      <button class="btn" type="submit" id="profileSave">Salvar</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- CORTINA -->
+<div class="curtain closed" id="curtain" aria-hidden="true">
+  <div class="drape l"></div><div class="drape r"></div><div class="valance"></div>
+</div>
+<div class="trans t-marquee on" id="tMarquee" aria-hidden="true">
+  <div class="bulbs"></div>
+  <div class="tm"><small>CINE JUSCE</small><b>A sessão vai começar</b></div>
+</div>
+<div class="trans t-vhs on" id="tVhs" aria-hidden="true">
+  <div class="osd play">▶ PLAY</div>
+  <div class="osd mid">CINE JUSCE</div>
+  <div class="osd sp">SP 0:00:00</div>
+</div>
 
 <script>
 const $ = id => document.getElementById(id);
@@ -423,6 +694,7 @@ async function getMic(){
     micTrack = s.getAudioTracks()[0];
     micTrack.contentHint = 'speech';
     selfAnalyser = makeAnalyser(s);
+    if (pref('sessao-mic') === 'off'){ micTrack.enabled = false; updateMicBtn(); }
     return s;
   }catch(e){
     log('Microfone indisponível: você ouve os outros, mas eles não te ouvem.', 'sys');
@@ -608,11 +880,11 @@ const genCode = () => {
   return Array.from({length:6}, () => c[Math.floor(Math.random()*c.length)]).join('');
 };
 function readName(fallback){
-  const n = $('nameIn').value.trim().slice(0, 24) || fallback;
-  try { localStorage.setItem('sessao-nome', n); } catch(_){}
-  return n;
+  return pref('sessao-nome').trim().slice(0, 24) || fallback;
 }
 function showRoom(code){
+  clearTimeout(curtainTimer);
+  setTimeout(() => setCurtain('open'), 150); // abre a cortina já na sala
   $('home').classList.add('hidden');
   $('room').classList.remove('hidden');
   $('roomCode').textContent = code;
@@ -840,22 +1112,112 @@ async function startGuest(code){
 }
 
 /* ---------------- UI ---------------- */
+function pref(k){ try { return localStorage.getItem(k) || ''; } catch(_){ return ''; } }
+function setPref(k, v){ try { localStorage.setItem(k, v); } catch(_){} }
+
+/* Cortina: closed (fechada) · framed (moldura da entrada) · open (sala) */
+let curtainTimer;
+function setCurtain(state){
+  $('curtain').className = 'curtain ' + state;
+  const on = state === 'closed';
+  $('tMarquee').classList.toggle('on', on);
+  $('tVhs').classList.toggle('on', on);
+}
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const theme = () => document.documentElement.dataset.theme || 'cortina';
+// Tempo da transição de cada tema
+const transMs = () => reduceMotion ? 0 : ({ cortina: 1000, marquise: 900, locadora: 700 }[theme()] || 1000);
+
+const THEME_TEXT = {
+  cortina:  { small: '— APRESENTA —', create: 'ADMIT · ONE', join: 'ADMIT · ONE' },
+  marquise: { small: 'EM CARTAZ',     create: '',            join: '' },
+  locadora: { small: '',              create: 'LANÇAMENTO',  join: 'DEVOLVER REBOBINADA' },
+};
+function applyTheme(t, save = true){
+  if (!THEME_TEXT[t]) t = 'cortina';
+  document.documentElement.dataset.theme = t;
+  if (save) setPref('sessao-tema', t);
+  const tx = THEME_TEXT[t];
+  $('brandSmall').textContent = tx.small;
+  $('createAd').textContent = tx.create;
+  if (!$('joinTicket').classList.contains('vip')) $('joinAd').textContent = tx.join;
+}
+
 function enter(kind){
+  if (role) return;
+  const code = $('codeIn').value.trim();
+  if (kind === 'guest' && code.length < 6) return $('codeIn').focus();
+  if (!pref('sessao-nome')) return openProfile(kind); // primeira vez: pede o nome antes
   ensureAudioCtx(); // dentro do toque, para o navegador liberar o áudio
-  if (kind === 'host'){ myName = readName('Anfitrião'); micReady = getMic(); startHost(); }
-  else {
-    if ($('codeIn').value.trim().length < 6) return $('codeIn').focus();
-    myName = readName('Convidado ' + Math.floor(10 + Math.random()*90));
-    micReady = getMic(); startGuest($('codeIn').value);
-  }
+  myName = readName(kind === 'host' ? 'Anfitrião' : 'Convidado ' + Math.floor(10 + Math.random()*90));
+  micReady = getMic();
+  setCurtain('closed');
+  // Se a sala não abrir, a cortina volta a mostrar a entrada
+  clearTimeout(curtainTimer);
+  curtainTimer = setTimeout(() => {
+    if (!$('home').classList.contains('hidden')){ setCurtain('framed'); toast('Não foi possível conectar. Tente de novo.'); role = null; try { peer && peer.destroy(); } catch(_){} }
+  }, 15000);
+  setTimeout(() => kind === 'host' ? startHost() : startGuest(code), transMs());
 }
 $('btnHost').onclick = () => enter('host');
 $('btnJoin').onclick = () => enter('guest');
 $('codeIn').addEventListener('keydown', e => e.key === 'Enter' && enter('guest'));
-$('nameIn').addEventListener('keydown', e => {
-  if (e.key !== 'Enter') return;
-  if ($('homeTicket').classList.contains('invited')) enter('guest'); else $('codeIn').focus();
-});
+
+/* Perfil */
+let pendingEnter = null;
+function updateAvatar(){
+  const n = pref('sessao-nome');
+  const html = n ? n.trim()[0].toUpperCase().replace(/[<>&]/g, '')
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>';
+  $('btnProfile').innerHTML = html; $('btnProfileRoom').innerHTML = html;
+}
+function openProfile(next){
+  pendingEnter = next || null;
+  $('nameIn').value = pref('sessao-nome');
+  $('nameIn').disabled = !!role;
+  $('nameLocked').classList.toggle('hidden', !role);
+  $('profileWhy').classList.toggle('hidden', !next);
+  $('profileTitle').textContent = next ? 'Quase lá' : 'Seu perfil';
+  $('profileSave').textContent = next ? (next === 'host' ? 'Criar sala' : 'Entrar') : 'Salvar';
+  document.querySelectorAll('[name=pfQuality]').forEach(r => r.checked = +r.value === quality);
+  $('pfMic').checked = pref('sessao-mic') !== 'off';
+  themeBefore = theme();
+  document.querySelectorAll('[name=pfTheme]').forEach(r => r.checked = r.value === theme());
+  $('profile').showModal();
+  if (!role) setTimeout(() => $('nameIn').focus(), 50);
+}
+$('profileForm').onsubmit = e => {
+  e.preventDefault();
+  if (!role){
+    const n = $('nameIn').value.trim().slice(0, 24);
+    if (!n) return $('nameIn').focus();
+    setPref('sessao-nome', n);
+  }
+  setPref('sessao-mic', $('pfMic').checked ? 'on' : 'off');
+  const th = (document.querySelector('[name=pfTheme]:checked') || {}).value;
+  if (th) applyTheme(th);
+  const q = +(document.querySelector('[name=pfQuality]:checked') || {}).value;
+  if (QUALITY[q] && q !== quality) setQuality(q);
+  $('profile').close(); updateAvatar();
+  if (pendingEnter){ const k = pendingEnter; pendingEnter = null; enter(k); }
+};
+/* Visual em tempo real: ao tocar numa opção, o site muda na hora e mostra a transição.
+   Cancelar (ou Esc) volta ao visual de antes. */
+let themeBefore = theme(), previewTimer;
+function previewTheme(t){
+  applyTheme(t, false);
+  clearTimeout(previewTimer);
+  setCurtain('closed');
+  previewTimer = setTimeout(() => setCurtain(role ? 'open' : 'framed'), transMs() + 500);
+}
+document.querySelectorAll('[name=pfTheme]').forEach(r => r.addEventListener('change', () => r.checked && previewTheme(r.value)));
+function revertTheme(){
+  if (theme() !== themeBefore){ clearTimeout(previewTimer); applyTheme(themeBefore, false); setCurtain(role ? 'open' : 'framed'); }
+}
+$('profile').addEventListener('cancel', () => { pendingEnter = null; revertTheme(); });
+$('profileCancel').onclick = () => { pendingEnter = null; revertTheme(); $('profile').close(); };
+$('btnProfile').onclick = () => openProfile();
+$('btnProfileRoom').onclick = () => openProfile();
 $('btnRetry').onclick = () => {
   if (!myConn || !myConn.open) return;
   myConn.send({ t: 'resend' });
@@ -867,7 +1229,11 @@ $('btnShare').onclick = shareScreen;
 $('btnStop').onclick = stopShare;
 $('btnQuality').onclick = () => setQuality(quality === 1080 ? 720 : 1080);
 $('btnPause').onclick = togglePause;
-$('btnLeave').onclick = () => { history.replaceState(null,'',location.pathname); location.reload(); };
+$('btnLeave').onclick = () => {
+  history.replaceState(null,'',location.pathname);
+  setCurtain('closed');
+  setTimeout(() => location.reload(), transMs());
+};
 $('btnFull').onclick = () => {
   const s = $('screen'), v = $('video');
   if (document.fullscreenElement || document.webkitFullscreenElement) return (document.exitFullscreen || document.webkitExitFullscreen).call(document);
@@ -884,11 +1250,14 @@ $('btnUnmute').onclick = () => {
 $('btnMic').onclick = () => {
   if (!micTrack) return;
   micTrack.enabled = !micTrack.enabled;
+  updateMicBtn();
+};
+function updateMicBtn(){
   const b = $('btnMic');
   b.setAttribute('aria-pressed', micTrack.enabled);
   b.setAttribute('aria-label', micTrack.enabled ? 'Desligar microfone' : 'Ligar microfone');
   $('micLabel').textContent = micTrack.enabled ? 'Microfone' : 'Mudo';
-};
+}
 $('filmVol').oninput = () => { $('video').volume = $('filmVol').value / 100; $('filmPct').textContent = $('filmVol').value + '%'; };
 setupMuteBtn($('filmMute'), 'filme', muted => { $('video').muted = muted; });
 $('tabChat').onclick = () => showTab('chat');
@@ -916,14 +1285,18 @@ $('chatForm').onsubmit = e => {
 window.addEventListener('pagehide', () => { try { peer && peer.destroy(); } catch(_){} });
 
 // Nome salvo e link com #CODIGO (convite: “Entrar” vira a ação principal)
-try { $('nameIn').value = localStorage.getItem('sessao-nome') || ''; } catch(_){}
+updateAvatar();
 if (location.hash.length > 1){
   $('codeIn').value = location.hash.slice(1, 7).toUpperCase();
   $('homeTicket').classList.add('invited');
   $('joinTicket').classList.add('vip');
+  $('joinAd').textContent = 'CONVITE · ESPECIAL';
   $('joinTitle').textContent = 'VIP';
   $('joinText').textContent = 'Você foi convidado. Seu código já está aqui, é só entrar.';
 }
+applyTheme(theme());
+// A cortina (ou a transição do tema) abre ao carregar a página
+setTimeout(() => setCurtain('framed'), reduceMotion ? 0 : 300);
 </script>
 </body>
 </html>
