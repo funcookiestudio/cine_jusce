@@ -107,6 +107,11 @@ dialog.sheet::backdrop{background:rgba(8,2,4,.3)}
 .switch input::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff4dc;transition:transform .2s}
 .switch input:checked{background:var(--wine-ink)}
 .switch input:checked::after{transform:translateX(20px)}
+.lockrow{padding:12px 0;border-bottom:1px solid var(--line)}
+.lockrow span{display:grid;font-weight:500}
+.lockrow small{font-size:13px;font-weight:400;color:var(--muted)}
+.lockrow input{background:var(--faint)}
+.lockrow input:checked{background:var(--lamp)}
 .sheet .actions{display:flex;gap:10px}
 .sheet .actions .btn{flex:1;background:var(--wine-ink);color:var(--cream);font:400 17px "Special Elite",monospace}
 .sheet .actions .btn.quiet{flex:none;background:transparent;color:var(--wine-ink)}
@@ -509,6 +514,10 @@ dialog.sheet::backdrop{background:rgba(8,2,4,.3)}
 
     <div class="pane hidden" id="panePeople" role="tabpanel" aria-labelledby="tabPeople">
       <div class="people">
+        <label class="switch lockrow hidden" id="lockRow">
+          <span>Trancar a sala<small>Ninguém novo entra, nem com o link.</small></span>
+          <input type="checkbox" id="lockIn" role="switch">
+        </label>
         <div class="person film hidden" id="filmRow">
           <div class="who"><span class="avatar"></span><span class="name">Filme</span></div>
           <span class="pct" id="filmPct">100%</span>
@@ -600,11 +609,9 @@ try { if (QUALITY[localStorage.getItem('sessao-qualidade')]) quality = +localSto
    - TURN_CREDENTIALS_URL: endereço que devolve a lista de iceServers em JSON
    - EXTRA_TURN: credenciais fixas, ex.: { urls: 'turn:servidor:3478', username: '...', credential: '...' } */
 const TURN_CREDENTIALS_URL = 'https://cine-jusce.funcookiestudio.workers.dev/turn-credentials';
-// Segundo TURN (reserva), caso o da Cloudflare falhe: Open Relay, gratuito e público.
-const EXTRA_TURN = [
-  { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turns:openrelay.metered.ca:443?transport=tcp'],
-    username: 'openrelayproject', credential: 'openrelayproject' }
-];
+// O Open Relay (TURN público) foi testado em 2026-11 e não respondia; um TURN morto
+// só atrasa a conexão, então ficou de fora. Se um dia houver outro TURN, entra aqui.
+const EXTRA_TURN = [];
 const ICE_CONFIG = { iceServers: [
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] },
   { urls: 'stun:stun.cloudflare.com:3478' },
@@ -664,7 +671,7 @@ function tuneSenders(call, kind){
       const e = p.encodings[0];
       e.priority = 'high'; e.networkPriority = 'high';
       if (s.track.kind === 'video'){
-        e.maxBitrate = QUALITY[quality].bitrate; e.maxFramerate = 30;
+        e.maxBitrate = videoBitrate(); e.maxFramerate = 30;
         // Sem banda: reduz um pouco a fluidez E a resolução, para o texto continuar legível
         p.degradationPreference = 'balanced';
       } else {
@@ -936,11 +943,14 @@ async function startHost(){
   peer.on('error', e => {
     if (e.type === 'unavailable-id') return startHost();
     if (e.type === 'peer-unavailable') return;
+    if (NET_ERRORS.includes(e.type)) return onServerTrouble();
     setStatus('Erro: ' + e.type);
   });
+  keepSignaling(peer);
   peer.on('call', onCall);
   peer.on('open', () => {
     showRoom(code);
+    $('lockRow').classList.remove('hidden');
     if (canShareScreen){
       $('btnShare').classList.remove('hidden');
       $('btnQuality').classList.remove('hidden'); updateQualityBtn();
@@ -951,6 +961,11 @@ async function startHost(){
     setStatus(countTxt(), false);
   });
   peer.on('connection', conn => {
+    // Sala trancada: avisa e recusa quem chegar
+    if (roomLocked){
+      conn.on('open', () => { conn.send({ t: 'locked' }); setTimeout(() => conn.close(), 400); });
+      return;
+    }
     conns.push(conn);
     // O nome vem de quem conectou e é fixado aqui: mensagens repassadas usam
     // este nome, nunca o que vier dentro da mensagem (evita se passar por outro).
@@ -985,6 +1000,8 @@ async function startHost(){
     });
     conn.on('close', () => {
       conns = conns.filter(c => c !== conn);
+      screenCalls = screenCalls.filter(c => { if (c.peer !== conn.peer) return true; try { c.close(); } catch(_){} return false; });
+      retuneVideo(); // sobrou banda: os outros recebem mais qualidade
       removePerson(conn.peer);
       relay({ t: 'leave', id: conn.peer });
       setStatus(countTxt(), conns.length > 0);
@@ -994,6 +1011,48 @@ async function startHost(){
 }
 function relay(d, from){ conns.forEach(c => c !== from && c.open && c.send(d)); }
 
+/* Banda do anfitrião: cada convidado recebe uma cópia do vídeo, então o upload
+   se multiplica. Com mais gente, cada cópia fica um pouco mais leve. */
+function videoBitrate(){
+  const n = Math.max(1, screenCalls.length);
+  const share = n === 1 ? 1 : n === 2 ? 0.7 : 0.5;
+  return Math.round(QUALITY[quality].bitrate * share);
+}
+async function retuneVideo(){
+  for (const c of screenCalls){
+    const pc = c.peerConnection; if (!pc) continue;
+    for (const s of pc.getSenders()){
+      if (!s.track || s.track.kind !== 'video') continue;
+      const p = s.getParameters(); if (!p.encodings || !p.encodings.length) continue;
+      p.encodings[0].maxBitrate = videoBitrate();
+      try { await s.setParameters(p); } catch(_){}
+    }
+  }
+}
+
+/* Trancar a sala */
+let roomLocked = false, lockedOut = false;
+
+/* Servidor de conexão (PeerJS): se cair antes de entrar, volta à entrada com aviso;
+   se cair com a sala aberta, quem já está continua junto e tentamos reconectar. */
+const NET_ERRORS = ['network', 'server-error', 'socket-error', 'socket-closed'];
+function onServerTrouble(){
+  if (!$('home').classList.contains('hidden')){
+    clearTimeout(curtainTimer);
+    setCurtain('framed');
+    toast('O servidor de conexão não respondeu. Tente de novo em instantes.');
+    role = null;
+    try { peer && peer.destroy(); } catch(_){}
+  } else {
+    setStatus('Reconectando…', false);
+  }
+}
+function keepSignaling(p){
+  p.on('disconnected', () => setTimeout(() => {
+    if (p === peer && !p.destroyed && p.disconnected){ try { p.reconnect(); } catch(_){} }
+  }, 2000));
+}
+
 function callScreen(id){
   // Uma transmissão por pessoa: fecha a anterior antes de mandar de novo
   screenCalls = screenCalls.filter(c => { if (c.peer !== id) return true; try { c.close(); } catch(_){} return false; });
@@ -1001,6 +1060,7 @@ function callScreen(id){
   if (!call) return;
   screenCalls.push(call);
   tuneSenders(call, 'screen');
+  retuneVideo(); // mais um convidado: redistribui a banda
 }
 
 async function shareScreen(){
@@ -1042,15 +1102,7 @@ async function setQuality(q){
   if (!stream) return;
   const vt = stream.getVideoTracks()[0];
   try { await vt.applyConstraints({ width: { ideal: QUALITY[q].w }, height: { ideal: QUALITY[q].h }, frameRate: { ideal: 30, max: 60 } }); } catch(_){}
-  for (const c of screenCalls){
-    const pc = c.peerConnection; if (!pc) continue;
-    for (const s of pc.getSenders()){
-      if (!s.track || s.track.kind !== 'video') continue;
-      const p = s.getParameters(); if (!p.encodings || !p.encodings.length) continue;
-      p.encodings[0].maxBitrate = QUALITY[q].bitrate;
-      try { await s.setParameters(p); } catch(_){}
-    }
-  }
+  await retuneVideo();
   toast('Qualidade: ' + q + 'p');
 }
 
@@ -1095,8 +1147,10 @@ async function startGuest(code){
   code = code.trim().toUpperCase();
   if (code.length < 6) return;
   peer = new Peer(undefined, { config: await getIceConfig() });
+  keepSignaling(peer);
   peer.on('error', e => {
     if (e.type === 'peer-unavailable' && myConn && myConn.open) return; // outro convidado sumiu
+    if (NET_ERRORS.includes(e.type)) return onServerTrouble();
     setStatus(e.type === 'peer-unavailable' ? 'Sala não encontrada' : 'Erro: ' + e.type);
     if (e.type === 'peer-unavailable') showEmpty('Sala não encontrada', 'Confira o código com quem te convidou.');
   });
@@ -1110,7 +1164,12 @@ async function startGuest(code){
       showEmpty('Você está na sala', 'O filme aparece aqui assim que o anfitrião compartilhar.');
     });
     myConn.on('data', d => {
-      if (d.t === 'chat') log(cleanMsg(d.msg), '', cleanName(d.name));
+      if (d.t === 'locked'){
+        lockedOut = true;
+        setStatus('Sala trancada', false);
+        showEmpty('Sala trancada', 'Quem criou a sala trancou a entrada. Peça para destrancar e tente de novo.');
+      }
+      else if (d.t === 'chat') log(cleanMsg(d.msg), '', cleanName(d.name));
       else if (d.t === 'roster') d.peers.forEach(p => callVoice(p.id, p.name));
       else if (d.t === 'pause') { setPaused(!!d.on, d.name); log(d.name + (d.on ? ' pausou o filme' : ' continuou o filme'), 'sys'); }
       else if (d.t === 'join') { person(d.id, d.name); log(d.name + ' entrou', 'sys'); }
@@ -1120,9 +1179,10 @@ async function startGuest(code){
       }
     });
     myConn.on('close', () => {
+      if (lockedOut) return; // a mensagem de sala trancada já está na tela
       setStatus('Sala encerrada', false);
       [...people.keys()].forEach(removePerson);
-      showEmpty('A sala foi encerrada', 'O anfitrião saiu.');
+      showEmpty('A sala foi encerrada', 'O anfitrião saiu. Toque em “Sair” para voltar ao início e criar ou entrar em outra sala.');
     });
   });
 }
@@ -1245,7 +1305,14 @@ $('btnShare').onclick = shareScreen;
 $('btnStop').onclick = stopShare;
 $('btnQuality').onclick = () => setQuality(quality === 1080 ? 720 : 1080);
 $('btnPause').onclick = togglePause;
+$('lockIn').onchange = () => {
+  roomLocked = $('lockIn').checked;
+  log(roomLocked ? 'Sala trancada: ninguém novo entra' : 'Sala destrancada', 'sys');
+  toast(roomLocked ? 'Sala trancada' : 'Sala destrancada');
+};
 $('btnLeave').onclick = () => {
+  // A sala depende do anfitrião: sair encerra para todos, então confirma antes
+  if (role === 'host' && conns.length && !confirm('Se você sair, a sala acaba para todos. Quer mesmo sair?')) return;
   history.replaceState(null,'',location.pathname);
   setCurtain('closed');
   setTimeout(() => location.reload(), transMs());
