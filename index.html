@@ -237,6 +237,11 @@ dialog.sheet.peek::backdrop{background:transparent}
 
 /* ================= SALA em cada tema ================= */
 .screen::before{content:"";position:absolute;left:0;right:0;top:0;z-index:2;pointer-events:none}
+/* Tela cheia: só o filme, sem enfeites do tema por cima */
+.screen:fullscreen::before{display:none!important}
+.screen:-webkit-full-screen::before{display:none!important}
+.screen:fullscreen{cursor:none}
+.screen:fullscreen.show-cursor{cursor:auto}
 
 /* Cortina: palco escuro, dourado e bambinela vermelha sobre a tela */
 [data-theme=cortina] #room{--lamp:#d9b77a;--ticket:#f0d9a8;--ink:#5a0b17;--line:rgba(217,183,122,.18);--faint:rgba(240,217,168,.08);--muted:rgba(240,217,168,.6);
@@ -1389,6 +1394,12 @@ $('btnFull').onclick = () => {
   else if (s.webkitRequestFullscreen) s.webkitRequestFullscreen();
   else if (v.webkitEnterFullscreen) v.webkitEnterFullscreen(); // iPhone
 };
+// Em tela cheia o cursor some; volta por 2 s quando o mouse mexe
+let cursorTimer;
+$('screen').addEventListener('mousemove', () => {
+  const s = $('screen'); s.classList.add('show-cursor');
+  clearTimeout(cursorTimer); cursorTimer = setTimeout(() => s.classList.remove('show-cursor'), 2000);
+});
 $('btnUnmute').onclick = () => {
   ensureAudioCtx();
   if ($('filmMute').getAttribute('aria-pressed') !== 'true') $('video').muted = false;
